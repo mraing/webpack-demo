@@ -1,0 +1,7 @@
+@import './index2.css';
+
+body{
+  background: #2bd377;
+  transform: rotate(45deg);
+  text-decoration: dashed;
+}
