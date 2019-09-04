@@ -4,8 +4,17 @@ let path = require('path')
 let HTMLWebpackPlugin = require('html-webpack-plugin')
 // 初始化 mini-css-extract-plugin
 let MiniCSSExtractPlugin = require('mini-css-extract-plugin')
+// 压缩 css
+let OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+// 压缩 JS
+let UglifyjsPlugin = require('uglifyjs-webpack-plugin')
 
 module.exports = {
+  // optimization: {
+  //   minimizer: [
+  //     new OptimizeCSSAssetsPlugin()
+  //   ]
+  // },
   // 开发模式 development，生产模式 production
   mode: 'development',
   // 打包文件入口
@@ -49,6 +58,26 @@ module.exports = {
     new MiniCSSExtractPlugin ({
       // 整合CSS之后的文件名
       filename: 'main.css'
+    }),
+    new OptimizeCSSAssetsPlugin({
+      assetNameRegExp: /\.css\.*(?!.*map)/g,  //注意不要写成 /\.css$/g
+      cssProcessor: require('cssnano'),
+      cssProcessorOptions: {
+        discardComments: { removeAll: true },
+        // 避免 cssnano 重新计算 z-index
+        safe: true,
+        // cssnano 集成了autoprefixer的功能
+        // 会使用到autoprefixer进行无关前缀的清理
+        // 关闭autoprefixer功能
+        // 使用postcss的autoprefixer功能
+        autoprefixer: false
+      },
+      canPrint: true
+    }),
+    new UglifyjsPlugin({
+      cache: true,
+      parallel: true,
+      sourceMap: true
     })
   ],
   // 模块
@@ -64,6 +93,7 @@ module.exports = {
         // style-loader: 把 CSS 插入到 head 中
         // css-loader: 解析 @improt 这种语法
         use: [
+          // 'style-loader', // 解析输出到 head
           MiniCSSExtractPlugin.loader, // 整合CSS
           'css-loader', // 解析 @inport
           'postcss-loader', // 添加内核前缀
@@ -79,6 +109,25 @@ module.exports = {
           'postcss-loader', // 添加内核前缀
           'less-loader' // 解析 less
         ]
+      },
+      {
+        test: /\.m?js$/,
+        exclude: /(node_modules|bower_components)/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: [
+              // 用 babel-loader 将 ES6 转换为 ES5
+              '@babel/preset-env',
+            ],
+            // 详细例子说明： https://babeljs.io/docs/en/babel-plugin-proposal-decorators
+            plugins: [
+              // 高级语法转换成低级语法
+              ['@babel/plugin-proposal-decorators', { 'legacy': true }],
+              ['@babel/plugin-proposal-class-properties', { 'loose' : true }]
+            ]
+          }
+        }
       }
     ]
   }
