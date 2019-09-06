@@ -9,16 +9,16 @@ const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 // 压缩 JS
 const UglifyjsPlugin = require('uglifyjs-webpack-plugin')
 // 清除文件
-// const { CleanWebpackPlugin } = require('clean-webpack-plugin')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 // 复制文件
-// const CopyWebpackPlugin = require('copy-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
 // webpack内置插件
 const Webpack = require('webpack')
 
 
 module.exports = {
   // 开发模式 development ，生产模式 production
-  mode: 'development',
+  mode: 'production',
   // 打包文件入口
   entry: './src/index.js',
   // 打包输出出口
@@ -33,16 +33,17 @@ module.exports = {
   // eval-source-map: 不会生成单独的文件，但是可以显示行和列
   // cheap-module-source-map: 不会产生列，但是是一个单独文件，产生后可以保留起来
   // cheap-module-eval-soource-map: 不会产生文件，集成在打包后的文件中，不会产生列
-  devtool: 'eval-source-map',
+  devtool: 'cheap-module-eval-soource-map',
+  // 开发服务配置
   devServer: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000', // 相当于配置了一个代理，只有有访问到'/api'的就代理到 3000 端口下
-        pathRewrite: {  //重定向
-          '^/api': ''
-        }
-      }
-    }
+    // 端口号
+    port: 3000,
+    // 显示进度条
+    progress: true,
+    // 默认指定文件 index.html
+    contentBase: './dist/',
+    // 是否压缩
+    compress: true
   },
   // 插件集合，所有的 webpack 插件都存放在这里
   plugins: [
@@ -86,7 +87,11 @@ module.exports = {
       sourceMap: true
     }),
     // 清除 plugin 也可以放数组
-    // new CleanWebpackPlugin(),
+    new CleanWebpackPlugin(),
+    new CopyWebpackPlugin([
+      // from: 来源文件，to: 复制到输出目录下的某个位置
+      {from: './doc/world.md', to: './'}
+    ]),
     new Webpack.BannerPlugin('Copyright Mr.Lee all rights reserved')
   ],
   // 模块
